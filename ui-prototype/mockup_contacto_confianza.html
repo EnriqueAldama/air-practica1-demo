@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENDA URJC - Contacto de confianza</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --urjc-red: #CB0017;
+            --urjc-red-dark: #9E0012;
+            --bg-gray: #f3f4f6;
+            --text-main: #111827;
+            --text-soft: #6b7280;
+            --border: #e5e7eb;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--bg-gray);
+            padding: 20px;
+        }
+
+        .phone-frame {
+            width: 390px;
+            height: 844px;
+            background: #fff;
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow: 0 26px 84px rgba(0, 0, 0, 0.22);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .status-bar {
+            height: 54px;
+            background: var(--urjc-red);
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 0 28px 6px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .header {
+            height: 52px;
+            background: var(--urjc-red);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+        }
+
+        .header-back {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .header-title {
+            font-size: 16px;
+            font-weight: 800;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .header-title img { height: 22px; }
+
+        .header-placeholder {
+            width: 36px;
+            height: 36px;
+        }
+
+        .content {
+            flex: 1;
+            background: var(--bg-gray);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .section {
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            padding: 14px;
+        }
+
+        .section h2 {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        .section p {
+            color: var(--text-soft);
+            font-size: 12px;
+            line-height: 1.45;
+            margin-bottom: 12px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .field label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #374151;
+        }
+
+        .field input,
+        .field select {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 11px;
+            font-size: 13px;
+            color: var(--text-main);
+            background: #fff;
+        }
+
+        .actions {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--urjc-red);
+            color: #fff;
+            box-shadow: 0 6px 14px rgba(203, 0, 23, 0.28);
+        }
+
+        .btn-primary:hover { background: var(--urjc-red-dark); }
+
+        .btn-secondary {
+            background: #fff;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 999px;
+            border: 1px solid #fecaca;
+            background: #fff1f2;
+            color: #9f1239;
+            padding: 5px 9px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <div class="status-bar">
+            <span>17:41</span>
+            <span>●●●●○ WiFi 🔋</span>
+        </div>
+
+        <div class="header">
+            <div class="header-back" data-back="mockup_perfil.html">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </div>
+            <div class="header-title">
+                <img src="assets/URJC_Simbolos/URJ_simbolo_BN_NEG.png" alt="URJC">
+                Contacto de confianza
+            </div>
+            <div class="header-placeholder"></div>
+        </div>
+
+        <main class="content">
+            <section class="section">
+                <h2>Datos de emergencia</h2>
+                <p>Este contacto recibira avisos cuando se active una alerta SOS o cuando no confirmes que estas a salvo durante el seguimiento.</p>
+                <span class="chip">Requisito obligatorio para Voy Contigo</span>
+            </section>
+
+            <section class="section">
+                <div class="field">
+                    <label for="contactName">Nombre y apellidos</label>
+                    <input id="contactName" type="text" placeholder="Ej. Laura Perez Martin">
+                </div>
+
+                <div class="field">
+                    <label for="contactPhone">Telefono movil</label>
+                    <input id="contactPhone" type="tel" placeholder="+34 6XX XXX XXX">
+                </div>
+
+                <div class="field" style="margin-bottom: 0;">
+                    <label for="contactRelation">Relacion</label>
+                    <select id="contactRelation">
+                        <option value="familia" selected>Familiar</option>
+                        <option value="amistad">Amistad</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                </div>
+            </section>
+
+            <div class="actions">
+                <button id="saveTrustedBtn" class="btn btn-primary">Guardar contacto</button>
+                <button class="btn btn-secondary" data-demo-nav="mockup_perfil.html">Cancelar</button>
+            </div>
+        </main>
+    </div>
+
+    <script src="demo-flow.js"></script>
+</body>
+</html>

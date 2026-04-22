@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENDA URJC — Panel de Administración</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --urjc-red: #CB0017;
+            --urjc-red-light: #FCE8EB;
+            --text-primary: #111827;
+            --text-secondary: #4B5563;
+            --bg-gray: #F3F4F6;
+            --border: #E5E7EB;
+            --sidebar-w: 260px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-gray);
+            color: var(--text-primary);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-w);
+            background: white;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-logo {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: center;
+        }
+
+        .sidebar-logo img { height: 40px; }
+
+        .nav-menu {
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .nav-link {
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background: var(--bg-gray);
+        }
+
+        .nav-link.active {
+            background: var(--urjc-red-light);
+            color: var(--urjc-red);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .topbar {
+            height: 70px;
+            background: white;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+        }
+
+        .topbar-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: var(--urjc-red);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .content-grid {
+            padding: 32px;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 24px;
+            height: calc(100vh - 70px);
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Sliders */
+        .config-section {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .slider-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .slider-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        input[type=range] {
+            width: 100%;
+            accent-color: var(--urjc-red);
+        }
+
+        .btn-save {
+            background: var(--urjc-red);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        /* Map and List */
+        .right-col {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .map-card { padding: 0; overflow: hidden; flex: 1; min-height: 400px; }
+        #map { width: 100%; height: 100%; }
+
+        /* Setup generic heatmap blob */
+        .heat-blob {
+            border-radius: 50%;
+            filter: blur(20px);
+            opacity: 0.6;
+        }
+        .heat-red { background: red; width: 100px; height: 100px; }
+        .heat-yellow { background: yellow; width: 80px; height: 80px; }
+
+        .incidents-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .incidents-table th {
+            text-align: left;
+            padding: 12px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .incidents-table td {
+            padding: 14px 12px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 11px;
+        }
+
+        .badge-warning { background: #FEF3C7; color: #D97706; }
+        .badge-danger { background: #FEE2E2; color: #DC2626; }
+
+        .btn-action {
+            background: transparent;
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .btn-action.resolve { color: #10B981; border-color: #10B981; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <img src="assets/URJC_Logo_Color/URJ_logo_Color_POS@4x.png" alt="Universidad Rey Juan Carlos">
+        </div>
+        <div class="nav-menu">
+            <a href="#" class="nav-link active">Dashboard IS</a>
+            <a href="#" class="nav-link">Gestión de Incidencias</a>
+            <a href="#" class="nav-link">Usuarios (SSO)</a>
+            <a href="#" class="nav-link">Reportes de Accesibilidad</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="topbar">
+            <div class="topbar-title">Configuración Índice de Seguridad (IS)</div>
+            <div class="user-profile">
+                <span>ES | EN</span>
+                <span>Admin Móstoles</span>
+                <div class="user-avatar">AM</div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <!-- Left Col: IS Weights -->
+            <div class="card">
+                <div class="card-title">Pesos del Algoritmo IS</div>
+                <div class="config-section">
+                    <div class="slider-group">
+                        <div class="slider-info">
+                            <span>Luminosidad (wL)</span>
+                            <span>40%</span>
+                        </div>
+                        <div class="slider-desc">Nivel de iluminación reportado en la zona</div>
+                        <input type="range" min="0" max="100" value="40">
+                    </div>
+
+                    <div class="slider-group">
+                        <div class="slider-info">
+                            <span>Afluencia (wA)</span>
+                            <span>35%</span>
+                        </div>
+                        <div class="slider-desc">Cantidad de personas concurrentes en la ruta</div>
+                        <input type="range" min="0" max="100" value="35">
+                    </div>
+
+                    <div class="slider-group">
+                        <div class="slider-info">
+                            <span>Elementos de Seguridad (wE)</span>
+                            <span>25%</span>
+                        </div>
+                        <div class="slider-desc">Cámaras, guardias y botones SOS cercanos</div>
+                        <input type="range" min="0" max="100" value="25">
+                    </div>
+
+                    <div class="slider-group" style="margin-top: 10px; padding-top: 20px; border-top: 1px solid #E5E7EB;">
+                        <div class="slider-info">
+                            <span>Penalización por Incidencias Activas</span>
+                            <span>-15 pts</span>
+                        </div>
+                        <input type="range" min="0" max="50" value="15">
+                    </div>
+
+                    <button class="btn-save">Guardar Configuración</button>
+                </div>
+            </div>
+
+            <!-- Right Col: Map & Incidents -->
+            <div class="right-col">
+                <div class="card map-card">
+                    <div id="map"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Incidencias Activas Recientes</div>
+                    <table class="incidents-table">
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Ubicación</th>
+                                <th>Reportado por</th>
+                                <th>Estado</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Farola Fundida</td>
+                                <td>Parking Aulario II</td>
+                                <td>alumno@alumnos.urjc.es</td>
+                                <td><span class="badge badge-warning">Pendiente</span></td>
+                                <td><button class="btn-action resolve">Marcar Resuelta</button></td>
+                            </tr>
+                            <tr>
+                                <td>Zona sin luz</td>
+                                <td>Camino Biblioteca</td>
+                                <td>profesor@urjc.es</td>
+                                <td><span class="badge badge-danger">Crítica</span></td>
+                                <td><button class="btn-action resolve">Marcar Resuelta</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const map = L.map('map').setView([40.33590, -3.87650], 16);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+        // Heatmap simulation icons
+        const redHeat = L.divIcon({ html: '<div class="heat-blob heat-red"></div>', className: '', iconSize: [100, 100], iconAnchor: [50, 50] });
+        const yellowHeat = L.divIcon({ html: '<div class="heat-blob heat-yellow"></div>', className: '', iconSize: [80, 80], iconAnchor: [40, 40] });
+
+        L.marker([40.33610, -3.87600], { icon: redHeat, interactive: false }).addTo(map);
+        L.marker([40.33500, -3.87700], { icon: yellowHeat, interactive: false }).addTo(map);
+        L.marker([40.33440, -3.87450], { icon: redHeat, interactive: false }).addTo(map);
+        
+        // POI Marker
+        function createPoiMarker(latlng, name) {
+            const html = `<div style="background:#111827;color:white;padding:4px 8px;border-radius:4px;font-size:11px;font-weight:600;font-family:'Inter',sans-serif;box-shadow:0 2px 4px rgba(0,0,0,0.2);">${name}</div>`;
+            const icon = L.divIcon({ html: html, className: '', iconSize: [100, 24], iconAnchor: [50, 12] });
+            return L.marker(latlng, { icon: icon }).addTo(map);
+        }
+        
+        createPoiMarker([40.33719, -3.87580], 'Biblioteca');
+        createPoiMarker([40.33570, -3.87654], 'Aulario I');
+
+    </script>
+</body>
+</html>

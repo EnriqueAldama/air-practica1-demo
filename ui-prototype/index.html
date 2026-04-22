@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>URJC Mobile SSO Login</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
+</head>
+<body>
+    <div id="desktop-wrapper">
+        <div id="app-container">
+            <div class="background">
+                <div class="bg-gradient-overlay"></div>
+            </div>
+            <div class="header-top">
+                <div class="lang-selector">
+                    <span class="active">ES</span>
+                    <span>EN</span>
+                </div>
+            </div>
+            
+            <div class="content-wrapper">
+                <main class="login-panel opaque-card animate-fade-in-up">
+                    <div class="logo-container top-logo">
+                        <img src="assets/URJC_Logo_Color/URJ_logo_Color_POS@4x.png" alt="Logo URJC" class="urjc-logo">
+                        <h1 class="app-title">SENDA</h1>
+                    </div>
+
+                    <div class="sso-buttons">
+                        <button class="btn sso-btn urjc-primary-btn ripple" id="sso-urjc">
+                            <img src="assets/URJC_Simbolos/URJ_simbolo_BN_NEG.png" alt="u" class="btn-icon-img">
+                            <span>Acceso usuarios URJC</span>
+                        </button>
+                        <p class="domain-info">Usa tu cuenta @urjc.es o @alumnos.urjc.es</p>
+                    </div>
+
+                    <a href="#" class="text-link dark-link">Otros accesos</a>
+                </main>
+
+                <footer class="app-footer animate-fade-in">
+                    <a href="#">Ayuda y Soporte</a>
+                    <p>&copy; 2026 Universidad Rey Juan Carlos</p>
+                </footer>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="hidden">
+        <div class="spinner"></div>
+        <p>Autenticando...</p>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

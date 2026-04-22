@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENDA URJC - Seguimiento de ruta</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --urjc-red: #CB0017;
+            --text-main: #111827;
+            --text-soft: #6b7280;
+            --bg-gray: #f3f4f6;
+            --border: #e5e7eb;
+            --green: #10b981;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--bg-gray);
+            padding: 20px;
+        }
+
+        .phone-frame {
+            width: 390px;
+            height: 844px;
+            background: #fff;
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow: 0 26px 84px rgba(0, 0, 0, 0.22);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .status-bar {
+            height: 54px;
+            background: var(--urjc-red);
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 0 28px 6px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .header {
+            height: 52px;
+            background: var(--urjc-red);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+        }
+
+        .header-back,
+        .header-bell {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-title {
+            font-size: 17px;
+            font-weight: 800;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .header-title img { height: 22px; }
+
+        .map-container {
+            flex: 1;
+            position: relative;
+            min-height: 0;
+        }
+
+        #map { width: 100%; height: 100%; }
+
+        .leaflet-control-attribution { display: none !important; }
+        .leaflet-control-zoom { margin-top: 8px !important; margin-right: 10px !important; }
+
+        .progress-chip {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            z-index: 1000;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+            padding: 10px 12px;
+            font-size: 12px;
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .sos-button {
+            position: absolute;
+            right: 12px;
+            bottom: 18px;
+            z-index: 1000;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--urjc-red);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 800;
+            border: 3px solid #fff;
+            box-shadow: 0 7px 16px rgba(203, 0, 23, 0.4);
+        }
+
+        .bottom-card {
+            background: #fff;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.1);
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .trip-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .trip-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-soft);
+        }
+
+        .meta-pill {
+            background: #ecfdf5;
+            color: #047857;
+            border: 1px solid #bbf7d0;
+            border-radius: 999px;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 700;
+            width: fit-content;
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 11px 10px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-primary { background: var(--urjc-red); color: #fff; }
+        .btn-secondary { background: #fff; color: var(--text-main); border: 1px solid var(--border); }
+        .btn-success { background: var(--green); color: #fff; }
+
+        .bottom-nav {
+            height: 68px;
+            background: #fff;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 8px 10px;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .nav-item svg { width: 24px; height: 24px; }
+        .nav-item span { font-size: 10px; font-weight: 600; }
+
+        .nav-item.active svg { fill: var(--urjc-red); }
+        .nav-item.active span { color: var(--urjc-red); }
+        .nav-item:not(.active) svg { fill: #9ca3af; }
+        .nav-item:not(.active) span { color: #9ca3af; }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <div class="status-bar">
+            <span>17:31</span>
+            <span>●●●●○ WiFi 🔋</span>
+        </div>
+
+        <div class="header">
+            <div class="header-back">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </div>
+            <div class="header-title">
+                <img src="assets/URJC_Simbolos/URJ_simbolo_BN_NEG.png" alt="URJC">
+                Seguimiento activo
+            </div>
+            <div class="header-bell">
+                <svg viewBox="0 0 24 24" fill="white"><path d="M12 2C7.58 2 4 5.58 4 10v4.59l-1.71 1.71A1 1 0 003 18h18a1 1 0 00.71-1.71L20 14.59V10c0-4.42-3.58-8-8-8zm0 20a2 2 0 01-2-2h4a2 2 0 01-2 2z"/></svg>
+            </div>
+        </div>
+
+        <div class="map-container">
+            <div class="progress-chip">Ruta principal · ETA 4 min</div>
+            <div id="map"></div>
+            <div class="sos-button" role="button" aria-label="SOS">SOS</div>
+        </div>
+
+        <div class="bottom-card">
+            <div class="trip-title">Biblioteca Campus Mostoles</div>
+            <div class="trip-meta">
+                <span>Distancia restante: 280 m</span>
+                <span class="meta-pill">IS Alto 85/100</span>
+            </div>
+            <div class="actions">
+                <button id="changeRouteBtn" class="btn btn-secondary">Cambiar ruta</button>
+                <button id="openPrealertBtn" class="btn btn-primary">Simular prealerta</button>
+                <button id="finishRouteBtn" class="btn btn-success" style="grid-column: span 2;">Llegue al destino</button>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item active">
+                <svg viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
+                <span>Mapa</span>
+            </div>
+            <div class="nav-item">
+                <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                <span>Voy Contigo</span>
+            </div>
+            <div class="nav-item">
+                <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+                <span>Reportar</span>
+            </div>
+            <div class="nav-item">
+                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                <span>Perfil</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([40.33600, -3.87570], 17);
+        L.control.zoom({ position: 'topright' }).addTo(map);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+        const userIcon = L.divIcon({
+            html: '<div style="width:18px;height:18px;background:#3B82F6;border-radius:50%;border:3px solid white;box-shadow:0 0 0 6px rgba(59,130,246,0.2),0 2px 6px rgba(0,0,0,0.2);"></div>',
+            className: '',
+            iconSize: [18, 18],
+            iconAnchor: [9, 9]
+        });
+
+        L.marker([40.33570, -3.87510], { icon: userIcon }).addTo(map);
+
+        const route = [
+            [40.33570, -3.87510],
+            [40.33590, -3.87530],
+            [40.33620, -3.87540],
+            [40.33660, -3.87562],
+            [40.33700, -3.87576],
+            [40.33719, -3.87580]
+        ];
+
+        L.polyline(route, { color: '#10b981', weight: 6, opacity: 0.95 }).addTo(map);
+
+        L.marker([40.33719, -3.87580], {
+            icon: L.divIcon({
+                html: '<div style="background:#CB0017;color:#fff;padding:4px 8px;border-radius:8px;font:700 11px Inter;">Destino</div>',
+                className: '',
+                iconSize: [64, 24],
+                iconAnchor: [20, 12]
+            })
+        }).addTo(map);
+    </script>
+    <script src="demo-flow.js"></script>
+</body>
+</html>

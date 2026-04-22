@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENDA URJC — Cálculo de Rutas</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --urjc-red: #CB0017;
+            --urjc-red-dark: #9E0012;
+            --urjc-red-light: #F5E6E9;
+            --text-primary: #1A1A1A;
+            --text-secondary: #6B7280;
+            --text-tertiary: #9CA3AF;
+            --bg-white: #FFFFFF;
+            --bg-gray: #F3F4F6;
+            --border-color: #E5E7EB;
+            --green-active: #10B981;
+            --green-bg: #D1FAE5;
+            --shadow-card: 0 -4px 24px rgba(0, 0, 0, 0.10);
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-gray);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .phone-frame {
+            width: 390px;
+            height: 844px;
+            background: var(--bg-white);
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0,0,0,0.08);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            height: 54px;
+            background: var(--urjc-red);
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            padding: 0 28px 6px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .status-bar .time { font-size: 15px; font-weight: 700; }
+        .status-bar .icons { display: flex; gap: 5px; font-size: 12px; }
+
+        /* Header */
+        .header {
+            height: 52px;
+            background: var(--urjc-red);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            color: white;
+        }
+
+        .header-back {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .header-back svg { width: 22px; height: 22px; }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .header-logo {
+            height: 20px;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        .header-bell {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .header-bell svg { width: 22px; height: 22px; }
+
+        .header-bell .badge {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: #FFD700;
+            color: var(--urjc-red-dark);
+            font-size: 10px;
+            font-weight: 800;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Toggle bar */
+        .toggle-bar {
+            height: 44px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .toggle-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--green-active);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.3); }
+        }
+
+        .toggle-switch {
+            width: 48px;
+            height: 28px;
+            background: var(--green-active);
+            border-radius: 14px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            right: 3px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        /* Map */
+        .map-container {
+            flex: 1;
+            position: relative;
+            min-height: 0;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Leaflet overrides */
+        .leaflet-control-attribution { display: none !important; }
+        .leaflet-control-zoom { margin-right: 12px !important; margin-top: 8px !important; }
+
+        /* Custom map markers - Solicitud */
+        .solicitud-marker {
+            width: 44px;
+            height: 52px;
+            position: relative;
+        }
+
+        .solicitud-marker .pin {
+            width: 44px;
+            height: 44px;
+            background: var(--urjc-red);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 10px rgba(196, 18, 48, 0.4);
+            border: 3px solid white;
+        }
+
+        .solicitud-marker .pin svg {
+            width: 22px;
+            height: 22px;
+            fill: white;
+        }
+
+        .solicitud-marker .pin-tail {
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 10px solid var(--urjc-red);
+            margin: -2px auto 0;
+        }
+
+        .solicitud-label {
+            background: white;
+            color: var(--text-primary);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+            text-align: center;
+            margin-top: 2px;
+            white-space: nowrap;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Route search bar overlay on map */
+        .route-search {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            right: 52px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            padding: 10px 12px;
+        }
+
+        .route-input {
+            display: flex;
+            align-items: center;
+            background: var(--bg-gray);
+            border-radius: 8px;
+            padding: 0 10px;
+            height: 36px;
+        }
+
+        .route-input svg {
+            width: 16px;
+            height: 16px;
+            fill: var(--text-tertiary);
+            flex-shrink: 0;
+        }
+
+        .route-input input {
+            border: none;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            color: var(--text-primary);
+            padding: 0 8px;
+            width: 100%;
+            background: transparent;
+        }
+
+        .route-input.origin svg { fill: #3B82F6; }
+        .route-input.dest svg { fill: var(--urjc-red); }
+
+        .sos-button {
+            position: absolute;
+            bottom: 20px;
+            right: 12px;
+            z-index: 999;
+            width: 56px;
+            height: 56px;
+            background: var(--urjc-red);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(203, 0, 23, 0.4);
+            cursor: pointer;
+            border: 3px solid white;
+        }
+
+        /* Custom map markers - POI */
+        .poi-marker {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .poi-marker .poi-icon {
+            width: 30px;
+            height: 30px;
+            background: #1E40AF;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(30, 64, 175, 0.35);
+            border: 2px solid white;
+        }
+
+        .poi-marker .poi-icon svg {
+            width: 16px;
+            height: 16px;
+            fill: white;
+        }
+
+        .poi-marker .poi-label {
+            background: rgba(30, 64, 175, 0.9);
+            color: white;
+            font-size: 9px;
+            font-weight: 600;
+            padding: 1px 6px;
+            border-radius: 6px;
+            margin-top: 2px;
+            white-space: nowrap;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 0.2px;
+        }
+
+        /* User location marker */
+        .user-location {
+            width: 18px;
+            height: 18px;
+            background: #3B82F6;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.2), 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        /* Bottom Card */
+        .bottom-card {
+            background: var(--bg-white);
+            border-radius: 20px 20px 0 0;
+            box-shadow: var(--shadow-card);
+            padding: 16px 20px;
+            position: relative;
+            z-index: 1000;
+        }
+
+        .card-handle {
+            width: 36px;
+            height: 4px;
+            background: #D1D5DB;
+            border-radius: 2px;
+            margin: 10px auto 0;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+        }
+
+        .card-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-badge {
+            background: var(--urjc-red);
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-filter {
+            font-size: 13px;
+            color: var(--urjc-red);
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .route-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            margin: 8px 0;
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .route-option:hover, .route-option.selected {
+            border-color: var(--urjc-red);
+            background: var(--urjc-red-light);
+        }
+
+        .route-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .route-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .route-stats {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            gap: 8px;
+        }
+
+        .is-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 8px;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .is-high { background: var(--green-active); }
+        .is-mid { background: #D97706; }
+        .is-low { background: var(--urjc-red); }
+
+        .route-actions {
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn-start {
+            background: var(--urjc-red);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            width: 100%;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(203, 0, 23, 0.3);
+        }
+
+        .voy-contigo-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-gray);
+            padding: 10px 14px;
+            border-radius: 10px;
+        }
+
+        /* Language selector */
+        .lang-selector {
+            font-size: 11px;
+            font-weight: 700;
+            color: white;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.4);
+            border-radius: 6px;
+            padding: 2px 6px;
+            cursor: pointer;
+            margin-left: 6px;
+        }
+
+        .request-accept {
+            background: var(--urjc-red);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            flex-shrink: 0;
+            font-family: 'Inter', sans-serif;
+            transition: background 0.2s;
+            letter-spacing: 0.3px;
+        }
+
+        .request-accept:hover {
+            background: var(--urjc-red-dark);
+        }
+
+        /* Scroll hint */
+        .scroll-hint {
+            text-align: center;
+            padding: 6px 0 4px;
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            height: 68px;
+            background: white;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 8px;
+            padding-bottom: 10px;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            cursor: pointer;
+        }
+
+        .nav-item svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .nav-item span {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+
+        .nav-item.active svg { fill: var(--urjc-red); }
+        .nav-item.active span { color: var(--urjc-red); }
+        .nav-item:not(.active) svg { fill: #9CA3AF; }
+        .nav-item:not(.active) span { color: #9CA3AF; }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span class="time">17:23</span>
+            <span class="icons">
+                <span>●●●●○</span>
+                <span>WiFi</span>
+                <span>🔋</span>
+            </span>
+        </div>
+
+        <div class="header">
+            <div class="header-back">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </div>
+            <span class="header-title"><img class="header-logo" src="assets/URJC_Simbolos/URJ_simbolo_BN_NEG.png" alt="URJC" style="height: 24px; vertical-align: middle; margin-right: 8px;">Rutas Seguras</span>
+            <div class="header-bell">
+                <svg viewBox="0 0 24 24" fill="white">
+                    <path d="M12 2C7.58 2 4 5.58 4 10v4.59l-1.71 1.71A1 1 0 003 18h18a1 1 0 00.71-1.71L20 14.59V10c0-4.42-3.58-8-8-8zm0 20a2 2 0 01-2-2h4a2 2 0 01-2 2z"/>
+                </svg>
+            </div>
+            <span class="lang-selector" aria-label="Cambiar idioma">ES</span>
+        </div>
+
+        <!-- Map -->
+        <div class="map-container">
+            <div class="route-search">
+                <div class="route-input origin">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>
+                    <input type="text" value="Mi ubicación actual">
+                </div>
+                <div class="route-input dest">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                    <input type="text" value="Biblioteca Campus Móstoles">
+                </div>
+            </div>
+            <div id="map"></div>
+            <div class="sos-button" role="button" aria-label="Botón de Emergencia">SOS</div>
+        </div>
+
+        <!-- Bottom Card -->
+        <div class="bottom-card">
+            <div class="card-header">
+                <div class="card-title">Rutas Sugeridas</div>
+            </div>
+            <div class="request-list">
+                <!-- Route 1 -->
+                <div class="route-option selected">
+                    <div class="route-info">
+                        <div class="route-name">Vía Principal iluminada</div>
+                        <div class="route-stats">5 min • 450 m</div>
+                    </div>
+                    <div class="is-badge is-high">IS Alto (85/100)</div>
+                </div>
+                <!-- Route 2 -->
+                <div class="route-option">
+                    <div class="route-info">
+                        <div class="route-name">Paseo central</div>
+                        <div class="route-stats">4 min • 380 m</div>
+                    </div>
+                    <div class="is-badge is-mid">IS Medio (60/100)</div>
+                </div>
+                <!-- Route 3 -->
+                <div class="route-option">
+                    <div class="route-info">
+                        <div class="route-name">Atajo zona ajardinada</div>
+                        <div class="route-stats">3 min • 300 m</div>
+                    </div>
+                    <div class="is-badge is-low">IS Bajo (35/100)</div>
+                </div>
+            </div>
+            <div class="route-actions">
+                <div class="voy-contigo-toggle">
+                    <span class="toggle-label" style="font-size:13px"><span class="toggle-dot"></span> Activar 'Voy Contigo'</span>
+                    <div class="toggle-switch"></div>
+                </div>
+                <button class="btn-start">Iniciar ruta segura</button>
+            </div>
+        </div>
+
+        <!-- Bottom Nav -->
+        <div class="bottom-nav">
+            <div class="nav-item active">
+                <svg viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
+                <span>Mapa</span>
+            </div>
+            <div class="nav-item">
+                <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                <span>Voy Contigo</span>
+            </div>
+            <div class="nav-item">
+                <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+                <span>Reportar</span>
+            </div>
+            <div class="nav-item">
+                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                <span>Perfil</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Initialize map centered on URJC Campus Móstoles (verified OSM center)
+        const map = L.map('map', {
+            zoomControl: false,
+            attributionControl: false
+        }).setView([40.33590, -3.87650], 16);
+
+        // Add zoom control to the right
+        L.control.zoom({ position: 'topright' }).addTo(map);
+
+        // OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+        }).addTo(map);
+
+        // User location marker (near Edif. Principal)
+        const userIcon = L.divIcon({
+            html: '<div class="user-location"></div>',
+            className: '',
+            iconSize: [18, 18],
+            iconAnchor: [9, 9]
+        });
+        L.marker([40.33560, -3.87500], { icon: userIcon }).addTo(map);
+
+        // Define route paths and colors
+        const routesData = [
+            {
+                latlngs: [
+                    [40.33560, -3.87500], [40.33580, -3.87520], [40.33610, -3.87530],
+                    [40.33660, -3.87550], [40.33710, -3.87570], [40.33719, -3.87580]
+                ],
+                color: '#10B981' // IS High Green
+            },
+            {
+                latlngs: [
+                    [40.33560, -3.87500], [40.33550, -3.87540], [40.33590, -3.87580],
+                    [40.33640, -3.87610], [40.33680, -3.87600], [40.33719, -3.87580]
+                ],
+                color: '#D97706' // IS Mid Orange
+            },
+            {
+                latlngs: [
+                    [40.33560, -3.87500], [40.33580, -3.87450], [40.33630, -3.87480],
+                    [40.33680, -3.87520], [40.33719, -3.87580]
+                ],
+                color: '#CB0017' // IS Low Red
+            }
+        ];
+
+        let currentRouteLine = L.polyline(routesData[0].latlngs, {
+            color: routesData[0].color,
+            weight: 6,
+            opacity: 0.9,
+            lineJoin: 'round'
+        }).addTo(map);
+
+        // Add interactivity to route options
+        document.querySelectorAll('.route-option').forEach((option, index) => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.route-option').forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+                
+                map.removeLayer(currentRouteLine);
+                currentRouteLine = L.polyline(routesData[index].latlngs, {
+                    color: routesData[index].color,
+                    weight: 6,
+                    opacity: 0.9,
+                    lineJoin: 'round'
+                }).addTo(map);
+            });
+        });
+
+        // === INCIDENCIAS RECIENTES ===
+        function createIncidenciaMarker(latlng) {
+            const html = `
+                <div style="width: 20px; height: 20px; background: #ea4335; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.3); border: 2px solid white; color: white; font-size: 10px; font-weight: bold;">
+                    !
+                </div>
+            `;
+            const icon = L.divIcon({ html: html, className: '', iconSize: [20, 20], iconAnchor: [10, 10] });
+            return L.marker(latlng, { icon: icon }).addTo(map);
+        }
+
+        createIncidenciaMarker([40.33610, -3.87600]);
+        createIncidenciaMarker([40.33500, -3.87700]);
+        createIncidenciaMarker([40.33440, -3.87450]);
+
+        function createPoiMarker(latlng, label, svgIcon) {
+            const html = `
+                <div class="poi-marker">
+                    <div class="poi-icon">${svgIcon}</div>
+                    <div class="poi-label">${label}</div>
+                </div>
+            `;
+            const icon = L.divIcon({ html: html, className: '', iconSize: [40, 40], iconAnchor: [20, 20] });
+            return L.marker(latlng, { icon: icon }).addTo(map);
+        }
+
+        // === POIs DEL CAMPUS (coordenadas reales verificadas en OpenStreetMap) ===
+
+        // Biblioteca — OSM verified: 40.33719, -3.87580
+        createPoiMarker([40.33719, -3.87580],
+            'Biblioteca',
+            '<svg viewBox="0 0 24 24" fill="white"><path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/></svg>'
+        );
+
+        // Aulario III — Extrapolated from OSM pattern: Aulario I (40.33570, -3.87654), Aulario II (40.33508, -3.87773)
+        // Each aulario shifts ~-0.0006 lat, ~-0.0012 lon → Aulario III ≈ 40.33445, -3.87890
+        createPoiMarker([40.33445, -3.87890],
+            'Aulario III',
+            '<svg viewBox="0 0 24 24" fill="white"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>'
+        );
+
+        // Aulario I — OSM verified: 40.33570, -3.87654
+        createPoiMarker([40.33570, -3.87654],
+            'Aulario I',
+            '<svg viewBox="0 0 24 24" fill="white"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>'
+        );
+
+        // Torre de Rectorado — OSM verified: 40.33774, -3.87493
+        createPoiMarker([40.33774, -3.87493],
+            'Rectorado',
+            '<svg viewBox="0 0 24 24" fill="white"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3zm-1 15H9v-2h2v2zm0-4H9V7h2v6zm4 4h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>'
+        );
+
+        // Cafetería — Located near Edif. Reina Sofía (OSM: 40.33470, -3.87461)
+        createPoiMarker([40.33470, -3.87461],
+            'Cafetería',
+            '<svg viewBox="0 0 24 24" fill="white"><path d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3zM2 21h18v-2H2v2z"/></svg>'
+        );
+
+        // Laboratorio II — OSM verified: 40.33536, -3.87721
+        createPoiMarker([40.33536, -3.87721],
+            'Laboratorios',
+            '<svg viewBox="0 0 24 24" fill="white"><path d="M7 2v2h1v14c0 2.21 1.79 4 4 4s4-1.79 4-4V4h1V2H7zm8 16c0 1.1-.9 2-2 2s-2-.9-2-2V4h4v14z"/></svg>'
+        );
+
+        // Edificio Principal — OSM verified: 40.33548, -3.87315
+        createPoiMarker([40.33548, -3.87315],
+            'Edif. Principal',
+            '<svg viewBox="0 0 24 24" fill="white"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>'
+        );
+    </script>
+    <script src="demo-flow.js"></script>
+</body>
+</html>

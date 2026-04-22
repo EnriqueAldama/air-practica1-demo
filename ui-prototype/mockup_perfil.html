@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENDA URJC - Perfil</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --urjc-red: #CB0017;
+            --urjc-red-dark: #9E0012;
+            --bg-gray: #f3f4f6;
+            --text-main: #111827;
+            --text-soft: #6b7280;
+            --border: #e5e7eb;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--bg-gray);
+            padding: 20px;
+        }
+
+        .phone-frame {
+            width: 390px;
+            height: 844px;
+            background: #fff;
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow: 0 26px 84px rgba(0, 0, 0, 0.22);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .status-bar {
+            height: 54px;
+            background: var(--urjc-red);
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 0 28px 6px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .header {
+            height: 52px;
+            background: var(--urjc-red);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+        }
+
+        .header-back {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .header-title {
+            font-size: 17px;
+            font-weight: 800;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .header-title img { height: 22px; }
+
+        .header-placeholder {
+            width: 36px;
+            height: 36px;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            background: var(--bg-gray);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .section {
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            padding: 14px;
+        }
+
+        .section h2 {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 10px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .field label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #374151;
+        }
+
+        .field input,
+        .field select {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 11px;
+            font-size: 13px;
+            color: var(--text-main);
+            background: #fff;
+        }
+
+        .switch-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .switch-row:last-child { border-bottom: none; }
+
+        .switch-label {
+            font-size: 13px;
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .toggle-switch {
+            width: 48px;
+            height: 28px;
+            background: #10B981;
+            border-radius: 14px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            right: 3px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .inline-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 11px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: var(--urjc-red);
+            color: #fff;
+            box-shadow: 0 6px 14px rgba(203, 0, 23, 0.28);
+        }
+
+        .btn-primary:hover { background: var(--urjc-red-dark); }
+
+        .btn-secondary {
+            background: #fff;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+        }
+
+        .note {
+            margin-top: 8px;
+            font-size: 11px;
+            color: var(--text-soft);
+            line-height: 1.4;
+        }
+
+        .bottom-nav {
+            height: 68px;
+            background: #fff;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 8px 10px;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            cursor: pointer;
+        }
+
+        .nav-item svg { width: 24px; height: 24px; }
+        .nav-item span { font-size: 10px; font-weight: 600; }
+
+        .nav-item.active svg { fill: var(--urjc-red); }
+        .nav-item.active span { color: var(--urjc-red); }
+        .nav-item:not(.active) svg { fill: #9ca3af; }
+        .nav-item:not(.active) span { color: #9ca3af; }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <div class="status-bar">
+            <span>17:37</span>
+            <span>●●●●○ WiFi 🔋</span>
+        </div>
+
+        <div class="header">
+            <div class="header-back">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </div>
+            <div class="header-title">
+                <img src="assets/URJC_Simbolos/URJ_simbolo_BN_NEG.png" alt="URJC">
+                Perfil
+            </div>
+            <div class="header-placeholder"></div>
+        </div>
+
+        <main class="content">
+            <section class="section">
+                <h2>Identidad institucional</h2>
+                <div class="field">
+                    <label for="fullName">Nombre completo</label>
+                    <input id="fullName" type="text" value="Maria Garcia Perez">
+                </div>
+                <div class="field">
+                    <label for="mail">Correo URJC</label>
+                    <input id="mail" type="email" value="maria.garcia@alumnos.urjc.es">
+                </div>
+                <div class="field" style="margin-bottom: 0;">
+                    <label for="language">Idioma</label>
+                    <select id="language">
+                        <option value="es" selected>Espanol</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2>Contacto de confianza</h2>
+                <div class="field">
+                    <label for="trustedPhone">Telefono principal</label>
+                    <input id="trustedPhone" type="tel" placeholder="+34 6XX XXX XXX">
+                </div>
+                <div class="inline-actions">
+                    <button id="manageContactBtn" class="btn btn-secondary">Configurar contacto</button>
+                </div>
+                <p class="note">Este contacto se usa en alertas SOS y prealertas de seguimiento.</p>
+            </section>
+
+            <section class="section">
+                <h2>Accesibilidad</h2>
+                <div class="switch-row">
+                    <span class="switch-label">Modo alto contraste</span>
+                    <div class="toggle-switch"></div>
+                </div>
+                <div class="switch-row">
+                    <span class="switch-label">Lectura por voz</span>
+                    <div class="toggle-switch is-off"></div>
+                </div>
+                <div class="switch-row">
+                    <span class="switch-label">Reducir animaciones</span>
+                    <div class="toggle-switch"></div>
+                </div>
+            </section>
+
+            <section class="section" style="margin-top: auto;">
+                <button id="saveProfileBtn" class="btn btn-primary">Guardar cambios</button>
+            </section>
+        </main>
+
+        <div class="bottom-nav">
+            <div class="nav-item">
+                <svg viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
+                <span>Mapa</span>
+            </div>
+            <div class="nav-item">
+                <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                <span>Voy Contigo</span>
+            </div>
+            <div class="nav-item">
+                <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+                <span>Reportar</span>
+            </div>
+            <div class="nav-item active">
+                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                <span>Perfil</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="demo-flow.js"></script>
+</body>
+</html>

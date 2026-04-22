@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENDA URJC - Terminos y Privacidad</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --urjc-red: #CB0017;
+            --urjc-red-dark: #9E0012;
+            --bg-gray: #f3f4f6;
+            --text-main: #111827;
+            --text-soft: #6b7280;
+            --border: #e5e7eb;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at 20% 20%, #ffffff 0%, #f3f4f6 55%, #eceef1 100%);
+            padding: 20px;
+        }
+
+        .phone-frame {
+            width: 390px;
+            height: 844px;
+            background: #fff;
+            border-radius: 36px;
+            overflow: hidden;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.22);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: var(--urjc-red);
+            color: #fff;
+            padding: 54px 20px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header img { height: 24px; }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 0.2px;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            background: var(--bg-gray);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+        }
+
+        .card h2 {
+            color: var(--text-main);
+            font-size: 16px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .card p {
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--text-soft);
+            margin-bottom: 8px;
+        }
+
+        .consent {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 13px;
+            line-height: 1.45;
+            color: var(--text-main);
+        }
+
+        .consent input {
+            width: 18px;
+            height: 18px;
+            margin-top: 1px;
+            accent-color: var(--urjc-red);
+        }
+
+        .actions {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-top: 6px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 14px;
+            padding: 14px;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--urjc-red);
+            color: #fff;
+            box-shadow: 0 6px 14px rgba(203, 0, 23, 0.28);
+        }
+
+        .btn-primary:hover { background: var(--urjc-red-dark); }
+
+        .btn-secondary {
+            background: #fff;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <header class="header">
+            <img src="assets/URJC_Simbolos/URJ_simbolo_BN_NEG.png" alt="URJC">
+            <h1>Antes de continuar</h1>
+        </header>
+
+        <main class="content">
+            <section class="card">
+                <h2>Terminos de uso</h2>
+                <p>Esta demo de SENDA URJC utiliza geolocalizacion durante el trayecto para ofrecer rutas seguras, avisos preventivos y funciones de emergencia.</p>
+                <p>El uso de la aplicacion implica aceptar las condiciones institucionales y el tratamiento de datos necesarios para las funciones de seguridad.</p>
+            </section>
+
+            <section class="card">
+                <h2>Politica de privacidad (resumen)</h2>
+                <p>Se procesa ubicacion de forma temporal para monitorizacion de ruta y respuesta ante alertas SOS. Los datos se tratan con fines de seguridad del campus.</p>
+                <p>El usuario puede consultar, rectificar y solicitar informacion adicional segun la normativa vigente.</p>
+            </section>
+
+            <section class="card">
+                <label class="consent" for="termsCheck">
+                    <input id="termsCheck" type="checkbox">
+                    <span>He leido y acepto los terminos de uso y la politica de privacidad para continuar en SENDA URJC.</span>
+                </label>
+            </section>
+
+            <div class="actions">
+                <button id="acceptTermsBtn" class="btn btn-primary">Confirmar y continuar</button>
+                <button id="rejectTermsBtn" class="btn btn-secondary">No acepto</button>
+            </div>
+        </main>
+    </div>
+
+    <script src="demo-flow.js"></script>
+</body>
+</html>
